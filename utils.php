@@ -63,11 +63,12 @@ function logLogin() {
     require_once 'mysqli.php';
     global $mysqli;
     if (isset($_COOKIE['OAuth_key'])) {
-        $stmt = $mysqli->prepare("INSERT INTO accessi (type, timestamp, ip, path, auth_key, uniq) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $type, $timestamp, $ip, $path, $auth_key, $unique);
+        $stmt = $mysqli->prepare("INSERT INTO accessi (type, timestamp, ip, website, path, auth_key, uniq) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssss", $type, $timestamp, $ip, $website, $path, $auth_key, $unique);
         $type = "administration_login";
         $timestamp = date("Y-m-d H:i:s");
-        $ip = $_SERVER['REMOTE_ADDR'];
+        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+        $website = $_SERVER['SERVER_NAME'];
         $path = $_SERVER['REQUEST_URI'];
         $unique = $_COOKIE['unique'];
         $auth_key = $_COOKIE['OAuth_key'];
@@ -97,7 +98,9 @@ function checkAuthentication() {
 function checkSetUnique() {
     if (!isset($_COOKIE['unique'])) {
         $unique = generateRandomSessionID();
-        setcookie("unique", $unique, time() + (86400 * 30), "/");
+        //set the cookie for also the main domain leonapp.it
+        setcookie("unique", $unique, time() + (86400 * 30), "/", ".leonapp.it");
+        //setcookie("unique", $unique, time() + (86400 * 30), "/");
         $_COOKIE['unique'] = $unique;
     }
 }

@@ -13,7 +13,7 @@
 
     <div id="navbarExampleTransparentExample" class="navbar-menu">
       <div class="navbar-start">
-        <a class="navbar-item" href="#">
+        <a class="navbar-item" href="/home.php">
           Area focaccine
         </a>
       </div>
@@ -21,7 +21,7 @@
       <div class="navbar-end">
         <div class="navbar-item">
           <div class="buttons">
-            <a class="button is-danger" href="#">
+            <a class="button is-danger" href="/logout.php">
               <span class="icon">
                 <i class="fas fa-sign-out-alt"></i>
               </span>

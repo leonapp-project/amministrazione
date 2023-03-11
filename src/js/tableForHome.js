@@ -35,7 +35,7 @@ function updateTable() {
           nome.innerHTML = entry.first_name;
           cognome.innerHTML = entry.last_name;
           classe.innerHTML = entry.class_number;
-          sezione.innerHTML = entry.class_branch + entry.class_section;
+          sezione.innerHTML = entry.class_section.toUpperCase();
           //stato.innerHTML = entry.can_buy_tickets;
           // to stato make a checkbox  <input type="checkbox" onChange="updatePermission(entry.id)">
           if(entry.can_buy_tickets == 1) {

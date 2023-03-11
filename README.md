@@ -19,8 +19,28 @@ https://amministrazione.leonapp.it/api/enableBuyTickets.php?student_id=1&can_buy
     "message": "Student can_buy_tickets value changed"
 }
 ```
+## api/updateStudentInfo.php
+### Tipo: POST
+### Parametri:
+- OAuth: String(32)
+- field: String ["first_name", "last_name", "email", "class_section", "class_number", "can_buy_tickets"]
+- value: String
+### Description
+Aggiorna le informazioni di uno studente.
+Come al solito, se il parametro OAuth non viene specificato, si controlla il cookie OAuth_key.
+### Permessi OAuth necessari
+- administration.studenti.updateInfo
+### Esempio
+https://amministrazione.leonapp.it/api/updateStudentInfo.php?id=1&field=first_name&value=Leonardo&OAuth=[OAUTH_KEY_HERE]
+### Resituzione
+```json
+{
+    "exit": "success",
+    "message": "Student info updated"
+}
+```
 
-## api/getList.php
+## api/getStudentList.php
 ### Tipo: GET
 ### Parametri:
 - OAuth: String(32)
@@ -68,6 +88,61 @@ https://amministrazione.leonapp.it/api/getList.php?sortBy=nome&sort=ASC&limit=30
 }
 ```
 
+## api/getStudentInfo.php
+### Tipo: GET
+### Parametri:
+- OAuth: String(32)
+- id: Int
+### Description
+Restituisce le informazioni di uno studente a partire dal suo id numerico.
+Come al solito, se il parametro OAuth non viene specificato, si controlla il cookie OAuth_key.
+### Permessi OAuth necessari
+- administration.studenti.getInfo
+### Esempio
+https://amministrazione.leonapp.it/api/getStudentInfo.php?id=1&OAuth=[OAUTH_KEY_HERE]
+### Restituzione
+```json
+{
+    "exit":"success",
+    "student":
+    {
+        "id": 1,
+        "first_name": "Leonardo",
+        "last_name": "Di Caprio",
+        "email": "le",
+        "last_login": "2023-02-26 12:46:05.128475",
+        "date_joined": "2023-02-26 12:44:12.683224",
+        "class_section": "SCA",
+    }
+}
+```
+
+## api/downloadTicketsBought.php
+### Tipo: GET
+### Parametri:
+- OAuth: String(32)
+- mode: String ["CSV", "JSON"]
+- id: Int
+- email (Optional): String
+### Description
+Restituisce la lista dei biglietti di uno studente a partire dal suo id numerico o dalla sua email.
+Come al solito, se il parametro OAuth non viene specificato, si controlla il cookie OAuth_key.
+### Permessi OAuth necessari
+- administration.studenti.getTicketsBought
+### Esempio
+https://amministrazione.leonapp.it/api/downloadTicketsBought.php?mode=JSON&id=1&OAuth=[OAUTH_KEY_HERE]
+### Restituzione
+```json
+{
+  "exit": "success",
+  "data": {
+    "03/2023": 1
+  }
+}```
+
 ## Permessi
 - administration.studenti.getList --> Bool
 - administration.students.enableBuyTickets --> Bool
+- administration.studenti.getInfo --> Bool
+- administration.studenti.getTicketsBought --> Bool
+- administration.studenti.updateInfo --> Bool

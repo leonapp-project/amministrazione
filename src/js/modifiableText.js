@@ -31,7 +31,6 @@ class ModifiableTextInput {
       this.buttonElement.querySelector("i").classList.add("fa-check");
       this.buttonElement.style.backgroundColor = "#00d1b2";
       this.inputElement.focus();
-      console.log("added listener");
       this.inputElement.addEventListener("keydown", (event) => this.listenForKeyDown(event, this));
     }
   

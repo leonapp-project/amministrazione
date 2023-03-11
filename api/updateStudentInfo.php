@@ -135,6 +135,6 @@ if ($stmt->affected_rows === 0) {
     exit();
 }
 //the student info was updated
-echo json_encode(array("exit" => "success"));
+echo json_encode(array("exit" => "success", "message" => "Student info updated"));
 exit();
 ?>

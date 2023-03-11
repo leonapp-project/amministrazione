@@ -303,7 +303,7 @@ require_once("mysqli.php");
                     <div class="is-size-5" id="blocchi_acquistati_mese">
                         0
                          - 
-                        <a href="#" class="has-text-info">scarica tutti gli acquisti di ogni mese (.xlsx)</a>
+                        <a href="api/downloadTicketsBought.php?id=<?php echo $_GET['id'];?>&mode=CSV" class="has-text-info">scarica tutti gli acquisti di ogni mese (.csv)</a>
                     </div>
                 </div>
             </div>

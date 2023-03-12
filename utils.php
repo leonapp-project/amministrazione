@@ -68,6 +68,7 @@ function logLogin() {
         $type = "administration_login";
         $timestamp = date("Y-m-d H:i:s");
         $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+        echo $ip;
         $website = $_SERVER['SERVER_NAME'];
         $path = $_SERVER['REQUEST_URI'];
         $unique = $_COOKIE['unique'];

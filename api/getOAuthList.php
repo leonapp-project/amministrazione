@@ -76,6 +76,7 @@ if ($result->num_rows === 0) {
 $OAuth_keys = array();
 while ($row = $result->fetch_assoc()) {
     $OAuth_keys[] = $row;
+    $OAuth_keys[count($OAuth_keys) - 1]['expiration'] = date("d/m/Y H:i:s", strtotime($OAuth_keys[count($OAuth_keys) - 1]['expiration']));
 }
 echo json_encode(array("exit" => "success", "OAuth_keys" => $OAuth_keys));
 exit();

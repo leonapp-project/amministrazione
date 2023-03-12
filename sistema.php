@@ -43,20 +43,20 @@ require_once "utils/checkAuth.php";
                 </a>
             </div>
             <div class="table-container">
-            <table id="oauth-table" class="table is-hoverable is-striped is-responsive">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th style="width: 200px">Commento / nome</th>
-                        <th>Valida fino al</th>
-                        <th>Impostazioni</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rows will be added dynamically by the script -->
-                </tbody>
-            </table>
-</div>
+                <table id="oauth-table" class="table is-hoverable is-striped is-responsive">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th style="width: 200px">Commento / nome</th>
+                            <th>Valida fino al</th>
+                            <th>Impostazioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be added dynamically by the script -->
+                    </tbody>
+                </table>
+            </div>
 
         </div>
     </section>
@@ -70,7 +70,7 @@ require_once "utils/checkAuth.php";
                 Gestisci i backups del sistema e delle tabelle
             </h2>
             <div class="buttons">
-                <a class="button is-primary is-light" href="#">
+                <a class="button is-primary is-light" href="#" onClick="createBackupImage();">
                     <span class="icon">
                         <i class="fas fa-plus"></i>
                     </span>
@@ -83,6 +83,27 @@ require_once "utils/checkAuth.php";
                     <span>Carica backup</span>
                 </a>
             </div>
+            <div class="table-container">
+                <table id="backups-table" class="table is-hoverable is-striped is-responsive">
+                    <thead>
+                        <tr>
+                            <th>Nome del backup</th>
+                            <th>Data di caricamento</th>
+                            <th>Dimensione</th>
+                            <th>ripristina</th>
+                        </tr>
+                        <tr>
+                            <div class="progress" id="loading_backups_icon" style="width: 100%">
+                                <progress class="progress is-small is-secondary" max="100">15%</progress>
+                            </div>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be added dynamically by the script -->
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </section>
     <!-- put some padding some space -->
@@ -220,5 +241,91 @@ commento: string (the comment of the OAuth key)*/
             updateOAuthTable();
         });
 
+    </script>
+    <!-- below the scripts associated with the backups -->
+    <script>
+        // Get the table and progress bar elements
+        const table = document.getElementById('backups-table');
+        const progressBar = document.getElementById('loading_backups_icon');
+
+        function resizeBackupsTable() {
+            const tableWidth = table.offsetWidth;
+            progressBar.style.width = `${tableWidth}px`;
+        }
+        function backupIsLoading() {
+            progressBar.style.display = 'block';
+            table.style.opacity = '0';
+        }
+        function backupIsLoaded() {
+            progressBar.style.display = 'none';
+            table.style.opacity = '1';
+        }
+        function updateBackupsTable() {
+            //Fetch the backups from backupapi/getBackups.php
+            // return is like this {"exit":"success","data":[{"file_id":"1MdojYhAB-Gretmd2uwKxS9S938VX1g5q","display_name":"Rubik_Beastly (1).zip","last_modified":"12\/03\/2023 12:46:51"}]}
+            backupIsLoading();
+            fetch("backupapi/getBackups.php")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exit === "success") {
+                        console.log("Fetched backups data:", data);
+                        const backups = data.data;
+                        const tableBody = $("#backups-table tbody");
+
+                        // Clear existing rows from table
+                        tableBody.empty();
+
+                        // Add new rows to table
+                        backups.forEach((backup, index) => {
+                            const row = $("<tr>");
+                            //display the name as a link https://drive.google.com/file/d/$fileId/view
+                            row.append($("<td>").html('<a href="https://drive.google.com/file/d/' + backup.file_id + '/view" target="_blank">' + backup.display_name + '</a>'));
+                            row.append($("<td>").text(backup.last_modified));
+                            //append size in MB, so convert from B to MB         
+                            row.append($("<td>").text((backup.size / 1024 / 1024).toFixed(2) + " MB"));       
+                            row.append($("<td>").html('<a class="button is-small is-rounded is-outlined is-primary" href="backupapi/downloadBackup.php?file_id=' + backup.file_id + '"><span class="icon"> <i class="fas fa-download"></i> </span></a>'));
+                            tableBody.append(row);
+                        });
+                    } else {
+                        // Handle error case
+                        console.error("Failed to fetch backups data");
+                    }
+                    backupIsLoaded();
+                })
+                .catch(error => {
+                    console.error("Failed to fetch backups data:", error);
+                    backupIsLoaded();
+                });
+        }
+        function createBackupImage() {
+            backupIsLoading();
+            fetch("backupapi/createBackupImage.php?backupname=immagine%20manuale")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exit === "success") {
+                        console.log("Created backup image:", data);
+                        $.notify("Backup creato", "success");
+                    } else {
+                        // Handle error case
+                        console.error("Failed to create backup image");
+                        $.notify("Errore nella creazione del backup", "error");
+                    }
+                    updateBackupsTable();
+                })
+                .catch(error => {
+                    console.error("Failed to create backup image:", error);
+                    $.notify("Errore nella creazione del backup", "error");
+                });
+        }
+
+        window.addEventListener('resize', () => {
+            resizeBackupsTable();
+        });
+        
+        window.addEventListener('load', () => {
+            resizeBackupsTable();
+            updateBackupsTable();
+
+                });
     </script>
 </body>

@@ -26,11 +26,35 @@ if (time() > strtotime($OAuth['expiration'])) {
     header("Location: index.php");
     exit();
 }
+
+//permissions needed
+// for any view: administration.view
+// to see the home page: administration.view.home
+// to see the system page: administration.view.system
+// so to see sistema.php you need administration.view and administration.system
+$permissions_needed = array("administration.view.view");
+$requested_page = basename($_SERVER['PHP_SELF']);
+if ($requested_page === "home.php") {
+    $permissions_needed[] = "administration.view.home";
+} else if ($requested_page === "sistema.php") {
+    $permissions_needed[] = "administration.view.sistema";
+}
+
+//now check if the OAuth satifsfies every permission needed
+$access_to = json_decode($OAuth['access_to'], true);
+foreach ($permissions_needed as $permission) {
+    if (!in_array($permission, $access_to) && !in_array(substr($permission, 0, strrpos($permission, ".")), $access_to) && !in_array(substr($permission, 0, strpos($permission, ".")), $access_to) && !in_array("*", $access_to)) {
+        //the OAuth token is not valid
+        header("Location: index.php");
+        exit();
+    }
+}
+/*
 //check if the access_to is valid, if it has the permission of administration.view or administration.* or *
 $access_to = json_decode($OAuth['access_to'], true);
 if (!isset($access_to['administration.view']) && !isset($access_to['administration.*']) && !isset($access_to['*'])) {
     //the OAuth token is not valid
     header("Location: index.php");
     exit();
-}
+}*/
 ?>

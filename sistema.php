@@ -18,15 +18,24 @@ require_once "utils/checkAuth.php";
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"
         integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js"></script>
-    <script src="src/js/tableForHome.js"></script>
     <script src="src/js/modifiableText.js"></script>
-
+    <script src="src/js/OAuthListTable.js"></script>
+    <script src="src/js/backupsSystemUtils.js"></script>
+    <script src="src/js/macrosSystemUtils.js"></script>
+    <style>
+        .is-max-height-25vh {
+            overflow-y: auto;
+            max-height: 25vh;
+            width: fit-content;
+        }
+    </style>
 </head>
 
 <body>
     <?php require "navbar.php"; ?>
     <!-- Title -->
     <section class="section">
+        <a name="top"></a>
         <div class="container">
             <h1 class="title">
                 Chiavi OAuth
@@ -61,10 +70,48 @@ require_once "utils/checkAuth.php";
         </div>
     </section>
 
+    <!-- Users section, create and delete such as the OAuth -->
     <section>
+        <a name="users"></a>
         <div class="container">
             <h1 class="title">
-                Backup
+                Utenti
+            </h1>
+            <h2 class="subtitle">
+                Gestisci gli utenti del sistema
+            </h2>
+            <div class="buttons">
+                <a class="button is-primary is-light" onClick="createNewAdminUser();">
+                    <span class="icon">
+                        <i class="fas fa-plus"></i>
+                    </span>
+                    <span>Crea utente</span>
+                </a>
+            </div>
+            <div class="table-container">
+                <table id="users-table" class="table is-hoverable is-striped is-responsive">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Username</th>
+                            <th>Impostazioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be added dynamically by the script -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section>
+        <a name="backups"></a>
+        <div class="container">
+            <h1 class="title">
+                Backups
             </h1>
             <h2 class="subtitle">
                 Gestisci i backups del sistema e delle tabelle
@@ -76,15 +123,15 @@ require_once "utils/checkAuth.php";
                     </span>
                     <span>Crea backup</span>
                 </a>
-                <a class="button is-warning is-light" href="#">
+                <a class="button is-warning is-light" id="backup-upload-btn">
                     <span class="icon">
                         <i class="fas fa-upload"></i>
                     </span>
                     <span>Carica backup</span>
                 </a>
             </div>
-            <div class="table-container">
-                <table id="backups-table" class="table is-hoverable is-striped is-responsive">
+            <div class="table-container is-max-height-25vh">
+                <table id="backups-table" class="table is-hoverable is-striped is-responsive ">
                     <thead>
                         <tr>
                             <th>Nome del backup</th>
@@ -109,6 +156,7 @@ require_once "utils/checkAuth.php";
     <!-- put some padding some space -->
     <div style="padding: 20px;"></div>
     <section>
+        <a name="macros"></a>
         <div class="container">
             <h1 class="title">
                 Macros
@@ -128,204 +176,133 @@ require_once "utils/checkAuth.php";
                 </a>
             </div>
         </div>
+        <div class="container">
+            <h2 class="title is-4">
+                Abilita nuovi studenti da .csv
+                <p class="help is-info" style="margin-top: 0px;">
+                    <span class="icon">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
+                    Il csv deve rispettare il formato specificato su dev.leonapp.it
+                </p>
+            </h2>
+            <div class="buttons">
+                <a class="button is-warning is-light" id="upload-whitelist-file" onclick="askForWhitelistFile();">
+                    <span class="icon">
+                        <i class="fas fa-upload"></i>
+                    </span>
+                    <span>Carica file</span>
+                </a>
+            </div>
     </section>
+    <!--Bulma  modal for the createNewAdminUser asking for username and passowrd -->
+    <div class="modal" id="new-admin-user-modal">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="box">
+                <h1 class="title">Create New Admin User</h1>
+                <div class="field">
+                    <label class="label">Username</label>
+                    <div class="control">
+                        <input class="input" type="text" id="new-admin-username" placeholder="Enter username">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Password</label>
+                    <div class="control">
+                        <input class="input" type="password" id="new-admin-password" placeholder="Enter password">
+                    </div>
+                </div>
+                <div id="new-admin-user-modal-error" class="has-text-danger"></div>
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button is-link" onclick="createNewAdminUserConfirm()">Submit</button>
+                    </div>
+                    <div class="control">
+                        <button class="button"
+                            onclick="document.getElementById('new-admin-user-modal').classList.remove('is-active')">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"
+            onclick="document.getElementById('new-admin-user-modal').classList.remove('is-active')"></button>
+    </div>
+
+
     <script>
-        function deleteKey(id) {
-            fetch("api/deleteOAuth.php?id=" + id)
+        function createNewAdminUser() {
+            document.getElementById("new-admin-user-modal").classList.add("is-active");
+        }
+        function createNewAdminUserConfirm() {
+            //fetch api/createAdminUser.php
+            fetch("api/createAdminUser.php?username=" + document.getElementById("new-admin-username").value + "&password=" + document.getElementById("new-admin-password").value)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.exit === "success") {
-                        console.log("Deleted OAuth key:", data);
-                        $.notify("Chiave OAuth eliminata", "success");
+                    if (data.exit == "success") {
+                        //update the table
+                        fetch("api/getSystemUsers.php")
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.exit == "success") {
+                                    updateSystemUsersTable(data.data);
+                                }
+                            });
+                        //close the modal
+                        document.getElementById("new-admin-user-modal").classList.remove("is-active");
                     } else {
-                        // Handle error case
-                        console.error("Failed to delete OAuth key");
-                        $.notify("Errore nell'eliminazione della chiave OAuth", "error");
+                        //show the error
+                        document.getElementById("new-admin-user-modal-error").innerHTML = data.error;
                     }
-                    updateOAuthTable();
-                })
-                .catch(error => {
-                    console.error("Failed to delete OAuth key:", error);
-                    $.notify("Errore nell'eliminazione della chiave OAuth", "error");
                 });
+            // display the modal
         }
-        function updateCommento(id, text) {
-            fetch("api/updateOAuthInfo.php?field=commento&value=" + text + "&id=" + id)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exit === "success") {
-                        console.log("Updated OAuth key commento:", data);
-                        $.notify("Commento aggiornato", "success");
-                    } else {
-                        // Handle error case
-                        console.error("Failed to update OAuth key commento");
-                        $.notify("Errore nell'aggiornamento del commento", "error");
-                    }
-                    updateOAuthTable();
-                })
-                .catch(error => {
-                    console.error("Failed to update OAuth key commento:", error);
-                    $.notify("Errore nell'aggiornamento del commento", "error");
-                });
+
+
+        function updateSystemUsersTable(data) {
+            //clear the table
+            document.getElementById("users-table").getElementsByTagName("tbody")[0].innerHTML = "";
+            //add the rows
+            for (let i = 0; i < data.length; i++) {
+                const row = data[i];
+                //create the row
+                let tr = document.createElement("tr");
+                //create the columns
+                let td1 = document.createElement("td");
+                let td2 = document.createElement("td");
+                let td3 = document.createElement("td");
+                //add the data to the columns
+                td1.innerHTML = row[0];
+                td2.innerHTML = row[3];
+                //td3 is just settings with next a seetings icon
+                td3.innerHTML = "<a href='#'><span class='icon'><i class='fas fa-cog'></i></span> impostazioni</a>";
+                //add the columns to the row
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                //add the row to the table
+                document.getElementById("users-table").getElementsByTagName("tbody")[0].appendChild(tr);
+            }
+
         }
-        $.notify.defaults({ globalPosition: 'bottom right' })
-
-        $(document).ready(function () {
-            // make the text editable
-            const nomeInput = new ModifiableTextInput("prova", "prova2", (text) => updateField("first_name", text));
-        });
-        function createNewOAuth() {
-            /*type: string (the type of the OAuth key)
-grade: int (the grade of the OAuth key)
-expiration: string (the expiration date of the OAuth key)
-access_to: json string (the access to of the OAuth key)
-commento: string (the comment of the OAuth key)*/
-            const type = "admin_created";
-            const grade = 0;
-            // add one month to expiration and convert to mysql timestamp format
-            const expiration = new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().slice(0, 19).replace('T', ' ');
-            const access_to = JSON.stringify({ "all": true });
-            const commento = "commento";
-            fetch("api/createOAuth.php?type=" + type + "&grade=" + grade + "&expiration=" + expiration + "&access_to=" + access_to + "&commento=" + commento)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exit === "success") {
-                        console.log("Created OAuth key:", data);
-                        $.notify("Chiave OAuth creata", "success");
-                    } else {
-                        // Handle error case
-                        console.error("Failed to create OAuth key");
-                        $.notify("Errore nella creazione della chiave OAuth", "error");
-                    }
-                    updateOAuthTable();
-                })
-                .catch(error => {
-                    console.error("Failed to create OAuth key:", error);
-                    $.notify("Errore nella creazione della chiave OAuth", "error");
-                });
-        }
-        function updateOAuthTable() {
-            // Fetch OAuth keys data from API and update table
-            fetch("api/getOAuthList.php?purpose=admin_created")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exit === "success") {
-                        console.log("Fetched OAuth keys data:", data);
-                        const oauthKeys = data.OAuth_keys;
-                        const tableBody = $("#oauth-table tbody");
-
-                        // Clear existing rows from table
-                        tableBody.empty();
-
-                        // Add new rows to table
-                        oauthKeys.forEach((key, index) => {
-                            const row = $("<tr>");
-                            row.append($("<td>").html('<a class="has-text-danger" href="#" onClick="deleteKey(' + key.id + ');"><i class="fas fa-trash-alt"></i> elimina</a>'));
-                            row.append($("<td>").html(key.commento + '<button class="button ml-2 is-small is-rounded is-outlined" style="background-color: #f5f5f5; display: none;" id="bcommento' + key.id + '"><span class="icon"><i class="fas fa-edit"></i></span></button>').attr("id", "commento-" + key.id));
-                            row.append($("<td>").text(key.expiration));
-                            row.append($("<td>").html(`<a href="#">settings <i class="fas fa-cog"></i></a>`));
-                            tableBody.append(row);
-                            const nomeInput = new ModifiableTextInput("commento-" + key.id, "bcommento" + key.id, (text) => updateCommento(key.id, text));
-
-                        });
-                    } else {
-                        // Handle error case
-                        console.error("Failed to fetch OAuth keys data");
-                    }
-                })
-                .catch(error => {
-                    console.error("Failed to fetch OAuth keys data:", error);
-                });
-        }
-        $(document).ready(function () {
-            updateOAuthTable();
-        });
+        //onload fetch the data from api/getSystemUsers.php and if data.exit==success then call updateSystemUsersTable(data)
+        fetch("api/getSystemUsers.php")
+            .then(response => response.json())
+            .then(data => {
+                if (data.exit == "success") {
+                    updateSystemUsersTable(data.data);
+                }
+            });
 
     </script>
-    <!-- below the scripts associated with the backups -->
+    <!-- below all the scripts associated with the macros -->
     <script>
-        // Get the table and progress bar elements
-        const table = document.getElementById('backups-table');
-        const progressBar = document.getElementById('loading_backups_icon');
+        // this is the script that will be executed when the user clicks on the "cancella tutti i dati" button
+        function deleteAllData() {
 
-        function resizeBackupsTable() {
-            const tableWidth = table.offsetWidth;
-            progressBar.style.width = `${tableWidth}px`;
-        }
-        function backupIsLoading() {
-            progressBar.style.display = 'block';
-            table.style.opacity = '0';
-        }
-        function backupIsLoaded() {
-            progressBar.style.display = 'none';
-            table.style.opacity = '1';
-        }
-        function updateBackupsTable() {
-            //Fetch the backups from backupapi/getBackups.php
-            // return is like this {"exit":"success","data":[{"file_id":"1MdojYhAB-Gretmd2uwKxS9S938VX1g5q","display_name":"Rubik_Beastly (1).zip","last_modified":"12\/03\/2023 12:46:51"}]}
-            backupIsLoading();
-            fetch("backupapi/getBackups.php")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exit === "success") {
-                        console.log("Fetched backups data:", data);
-                        const backups = data.data;
-                        const tableBody = $("#backups-table tbody");
-
-                        // Clear existing rows from table
-                        tableBody.empty();
-
-                        // Add new rows to table
-                        backups.forEach((backup, index) => {
-                            const row = $("<tr>");
-                            //display the name as a link https://drive.google.com/file/d/$fileId/view
-                            row.append($("<td>").html('<a href="https://drive.google.com/file/d/' + backup.file_id + '/view" target="_blank">' + backup.display_name + '</a>'));
-                            row.append($("<td>").text(backup.last_modified));
-                            //append size in MB, so convert from B to MB         
-                            row.append($("<td>").text((backup.size / 1024 / 1024).toFixed(2) + " MB"));       
-                            row.append($("<td>").html('<a class="button is-small is-rounded is-outlined is-primary" href="backupapi/downloadBackup.php?file_id=' + backup.file_id + '"><span class="icon"> <i class="fas fa-download"></i> </span></a>'));
-                            tableBody.append(row);
-                        });
-                    } else {
-                        // Handle error case
-                        console.error("Failed to fetch backups data");
-                    }
-                    backupIsLoaded();
-                })
-                .catch(error => {
-                    console.error("Failed to fetch backups data:", error);
-                    backupIsLoaded();
-                });
-        }
-        function createBackupImage() {
-            backupIsLoading();
-            fetch("backupapi/createBackupImage.php?backupname=immagine%20manuale")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exit === "success") {
-                        console.log("Created backup image:", data);
-                        $.notify("Backup creato", "success");
-                    } else {
-                        // Handle error case
-                        console.error("Failed to create backup image");
-                        $.notify("Errore nella creazione del backup", "error");
-                    }
-                    updateBackupsTable();
-                })
-                .catch(error => {
-                    console.error("Failed to create backup image:", error);
-                    $.notify("Errore nella creazione del backup", "error");
-                });
         }
 
-        window.addEventListener('resize', () => {
-            resizeBackupsTable();
-        });
-        
-        window.addEventListener('load', () => {
-            resizeBackupsTable();
-            updateBackupsTable();
 
-                });
+
     </script>
 </body>

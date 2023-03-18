@@ -5,54 +5,66 @@ accessi
 id, type, timestamp, ip, website, path, unique
 OAuth
 id, type, grade, key, expiration, access_to, commento
-
+OAuth_map
+id, OAuth, email, username, password
 */
 ini_set('display_errors', -1);
 
-if ( !isset($_POST['password']) ) {
-    setcookie('error', 'void', time() + 3600, '/');
-    header('Location: index.php');
-    exit('Please fill both the username and password fields!');
-}
+require_once('utils.php');
+checkSetUnique();
 
-$master_password = "test";
+$username = $_POST['username'];
+$password = $_POST['password'];
 
-if($_POST['password'] !== $master_password) {
-    setcookie('error', 'incorrect', time() + 3600, '/');
+if (!isset($username) || !isset($password)) {
+    setcookie('error', 'blank fields!', time() + 3600, '/');
     header('Location: index.php');
     exit('Incorrect password!');
 }
+//password is password sha256
+$password = hash('sha256', $password.$username);
 
-//now log the login to the table accessi
-require_once('utils.php');
-
-checkSetUnique();
-
-//if the OAuth key is not set, generate a new one
-$to_set = false;
-if (!isset($_COOKIE['OAuth_key'])) {
-    $OAuth_key = generateRandomSessionID();
-    setcookie("OAuth_key", $OAuth_key, time() + (86400 * 30), "/");
-    $_COOKIE['OAuth_key'] = $OAuth_key;
-    $to_set = true;
+require_once('mysqli.php');
+//check if the user exists
+$sql = "SELECT OAuth FROM OAuth_map WHERE username = ? AND password = ?";
+$stmt = $mysqli->prepare($sql);
+$stmt->bind_param("ss", $username, $password);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows == 0) {
+    setcookie('error', 'incorrect password!', time() + 3600, '/');
+    header('Location: index.php');
+    exit('Incorrect password!');
 }
-$OAuth_key = $_COOKIE['OAuth_key'];
-//insert the OAuth key in the database using insertOAuthKey()
-//but before set all the varuiables learyly
-$type = "administration";
-$grade = 0;
-$expiration = date("Y-m-d H:i:s", strtotime("+1 month"));
+$row = $result->fetch_assoc();
+$OAuth = $row['OAuth'];
 
-//make a dictionary access_to_dict with key "administration_generic" and value "administration_generic"
-$access_to_dict = array("administration.*" => True);
-$access_to = json_encode($access_to_dict);
-
-if($to_set == true) {
-    $commento = "Nessun commento.";
-    insertOAuthKey($type, $grade, $OAuth_key, $expiration, $access_to, $commento);
-} else {
-    renewOAuthKey($OAuth_key, $expiration);
+//check if the OAuth key is valid
+$sql = "SELECT * FROM OAuth WHERE okey = ?";
+$stmt = $mysqli->prepare($sql);
+$stmt->bind_param("s", $OAuth);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows == 0) {
+    setcookie('error', 'OAuth key not valid!', time() + 3600, '/');
+    header('Location: index.php');
+    exit('OAuth key not valid!');
 }
+$row = $result->fetch_assoc();
+$grade = $row['grade'];
+$expiration = $row['expiration'];
+$access_to = $row['access_to'];
+$access_to = json_decode($access_to, true);
+
+//check if the OAuth key is expired
+if ($expiration < time()) {
+    setcookie('error', 'OAuth key expired!', time() + 3600, '/');
+    header('Location: index.php');
+    exit('OAuth key expired!');
+}
+
+//set the cookie OAuth_key to OAuth
+setcookie('OAuth_key', $OAuth, time() + 3600, '/');
 
 logLogin();
 

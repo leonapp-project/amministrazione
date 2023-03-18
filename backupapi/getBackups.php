@@ -27,42 +27,12 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 header('Content-Type: application/json');
 
-//get the OAuth token
-if(isset($_GET['OAuth'])) {
-    $OAuth = $_GET['OAuth'];
-} else {
-    $OAuth = $_COOKIE['OAuth_key'];
-}
-
-//check if the OAuth token is valid
-$stmt = $mysqli->prepare("SELECT * FROM OAuth WHERE okey = ?");
-$stmt->bind_param("s", $OAuth);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows === 0) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token not valid"));
-    exit();
-}
-//the OAuth token is valid
-$OAuth = $result->fetch_assoc();
-if ($OAuth['grade'] > 0) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token not valid"));
-    exit();
-}
-//the OAuth token is valid
-$access_to = json_decode($OAuth['access_to'], true);
-if (!isset($access_to['administration.backup.view']) && !isset($access_to['administration.*']) && !isset($access_to['administration.backup.*']) && !isset($access_to['*'])) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token not valid"));
-    exit();
-}
-//check if the OAuth token is expired
-if (time() > strtotime($OAuth['expiration'])) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token expired"));
-    exit();
+//check if the OAuth key is valid
+require_once "utils.php";
+$permission_needed = "administration.backup.view";
+if(!checkOAuthPermissionFor($permission_needed)) {
+    echo json_encode(array("exit"=> "error", 'error' => "Invalid OAuth key for \"$permission_needed\". Contact the administrator to resolve this issue."));
+    exit;
 }
 
 //check if /VPS_host/secrets/leonapp-drive.json exists
@@ -127,31 +97,37 @@ do {
 } while ($pageToken != null);
 
 if (count($files) == 0) {
-    echo json_encode(array("exit"=> "success", 'data' => []));
-} else {
-    // echo json_encode(array("exit"=> "success", 'data' => $files));
-    //each file should have the field: file_id, display_name, upload_date
-    $filesArray = [];
-    foreach ($files as $file) {
-        $fileId = htmlspecialchars($file->getId());
-        $fileName = htmlspecialchars($file->getName());
-        $lastModifiedTime = $file->getModifiedTime();
-        if (empty($lastModifiedTime)) {
-            $lastModifiedTime = $file->getCreatedTime();
-        }
-        $fileModifiedTime = htmlspecialchars(date('d/m/Y H:i:s', strtotime($lastModifiedTime)));
-        $fileSize = htmlspecialchars($file->getSize());
-        $filesArray[] = array('file_id' => $fileId, 'display_name' => $fileName, 'last_modified' => $fileModifiedTime, 'size' => $fileSize);
-
+    if($suppress_success_message!=true) {
+        echo json_encode(array("exit"=> "success", 'data' => []));
     }
-    echo json_encode(array("exit"=> "success", 'data' => $filesArray));
-    /*
-    echo '<ul>';
-    foreach ($files as $file) {
-        $fileId = htmlspecialchars($file->getId());
-        $fileName = htmlspecialchars($file->getName());
-        echo "<li><a href='https://drive.google.com/file/d/$fileId/view' target='_blank'>$fileName</a></li>";
-    }
-    echo '</ul>';*/
+    exit();
 }
+
+// echo json_encode(array("exit"=> "success", 'data' => $files));
+//each file should have the field: file_id, display_name, upload_date
+$filesArray = [];
+foreach ($files as $file) {
+    $fileId = htmlspecialchars($file->getId());
+    $fileName = htmlspecialchars($file->getName());
+    $lastModifiedTime = $file->getModifiedTime();
+    if (empty($lastModifiedTime)) {
+        $lastModifiedTime = $file->getCreatedTime();
+    }
+    $fileModifiedTime = htmlspecialchars(date('d/m/Y H:i:s', strtotime($lastModifiedTime)));
+    $fileSize = htmlspecialchars($file->getSize());
+    $filesArray[] = array('file_id' => $fileId, 'display_name' => $fileName, 'last_modified' => $fileModifiedTime, 'size' => $fileSize);
+
+}
+if($suppress_success_message!=true) {
+    echo json_encode(array("exit"=> "success", 'data' => $filesArray));
+}
+/*
+echo '<ul>';
+foreach ($files as $file) {
+    $fileId = htmlspecialchars($file->getId());
+    $fileName = htmlspecialchars($file->getName());
+    echo "<li><a href='https://drive.google.com/file/d/$fileId/view' target='_blank'>$fileName</a></li>";
+}
+echo '</ul>';*/
+
 ?>

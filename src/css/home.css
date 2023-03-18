@@ -1,0 +1,38 @@
+#download-button .icon {
+    margin-left: 5px;
+  }
+
+  #download-popover {
+    padding: 10px;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 200px;
+    z-index: 1;
+    background-color: #fff;
+    border: 1px solid #dbdbdb;
+    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+  }
+
+  #download-popover label {
+    margin-bottom: 5px;
+  }
+
+  #download-csv-button {
+    margin-top: 10px;
+  }
+
+  .is-hidden {
+    display: none;
+  }
+
+  .pagination-list {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .pagination-link {
+    flex-grow: 1;
+    margin: 0 5px;
+    text-align: center;
+  }

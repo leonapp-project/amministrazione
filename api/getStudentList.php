@@ -148,8 +148,28 @@ while ($row = $result->fetch_assoc()) {
 }
 
 $results_number = count($students);
+
+//count how many students would have satisfied the previous query without the LIMIT
+$query = "SELECT COUNT(*) FROM utenti WHERE 1";
+if ($nome !== '') {
+    $query .= " AND first_name LIKE '%" . $nome . "%'";
+}
+if ($cognome !== '') {
+    $query .= " AND last_name LIKE '%" . $cognome . "%'";
+}
+if ($sezione !== '') {
+    $query .= " AND class_section LIKE '%" . $sezione . "%'";
+}
+if($anno !== '') {
+    $query .= " AND class_number LIKE '%" . $anno . "%'";
+}
+$stmt = $mysqli->prepare($query);
+$stmt->execute();
+$result = $stmt->get_result();
+$total_students = $result->fetch_assoc()['COUNT(*)'];
+
 //set the header so this is a json answer
-echo json_encode(array("exit" => "success", "results"=> $results_number, "students" => $students));
+echo json_encode(array("exit" => "success", "results"=> $results_number, "students" => $students, "total_students" => $total_students));
 exit();
 
 /* create a sample URL to test this API

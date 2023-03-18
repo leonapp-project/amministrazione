@@ -85,6 +85,12 @@ checkSetUnique();
         <h2 class="subtitle">Amministrazione</h2>
         <div class="login-box">
           <form method="post" action="auth.php">
+          <div class="field">
+              <label class="label">Username</label>
+              <div class="control">
+                <input class="input login-button" type="text" name="username" required>
+              </div>
+            </div>
             <div class="field">
               <label class="label">Password</label>
               <div class="control">

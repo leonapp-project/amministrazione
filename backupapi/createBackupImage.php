@@ -18,42 +18,11 @@ require_once 'mysqli.php';
 
 header('Content-Type: application/json');
 
-//get the OAuth token
-if(isset($_GET['OAuth'])) {
-    $OAuth = $_GET['OAuth'];
-} else {
-    $OAuth = $_COOKIE['OAuth_key'];
-}
-
-//check if the OAuth token is valid
-$stmt = $mysqli->prepare("SELECT * FROM OAuth WHERE okey = ?");
-$stmt->bind_param("s", $OAuth);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows === 0) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token not valid"));
-    exit();
-}
-//the OAuth token is valid
-$OAuth = $result->fetch_assoc();
-if ($OAuth['grade'] > 0) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token not valid"));
-    exit();
-}
-//the OAuth token is valid
-$access_to = json_decode($OAuth['access_to'], true);
-if (!isset($access_to['administration.backup.createImage']) && !isset($access_to['administration.*']) && !isset($access_to['administration.backup.*']) && !isset($access_to['*'])) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token not valid"));
-    exit();
-}
-//check if the OAuth token is expired
-if (time() > strtotime($OAuth['expiration'])) {
-    //the OAuth token is not valid
-    echo json_encode(array("exit" => "error", "error" => "OAuth token expired"));
-    exit();
+require_once "utils.php";
+$permission_needed = "administration.backup.createImage";
+if(!checkOAuthPermissionFor($permission_needed, null, 0)) {
+    echo json_encode(array("exit"=> "error", 'error' => "Invalid OAuth key for \"$permission_needed\". Contact the administrator to resolve this issue."));
+    exit;
 }
 
 // Get a list of all the tables in the database
@@ -75,7 +44,31 @@ $dir = 'backups';
 
 // Set the backup info file name and contents
 $infoFilename = 'backup-info.yml';
-$infoContents = "backup_time: $date\nbackup_info: Leonapp CC2023 Niccolo Pagano e Daniele Lin. Tutti i diritti riservati. Vedi GitHub.com/leonapp-project per maggiori informazioni";
+//$infoContents = "backup_time: $date\nbackup_info: Leonapp CC2023 Niccolo Pagano e Daniele Lin. Tutti i diritti riservati. Vedi GitHub.com/leonapp-project per maggiori informazioni";
+//set the yml file contents like this
+/*
+# Questo file è stato generato automaticamente da backupapi/createBackupImage.php
+# e contiene informazioni sul backup e le tabelle che contiene.
+# Tutti i backups sono compressi in un file .zip e caricati su Google Drive e possono essere utilizzati per ripristinare il database da amministrazione.leonapp.it/sistema.php
+name: $filename
+backup_time: $date
+backup_info: Leonapp CC2023 Niccolo Pagano e Daniele Lin. Tutti i diritti riservati. Vedi GitHub.com/leonapp-project per maggiori informazioni
+table_list:
+    - utenti
+    - OAuth
+    etc...
+*/
+$infoContents = "# Questo file è stato generato automaticamente da backupapi/createBackupImage.php\n";
+$infoContents .= "# e contiene informazioni sul backup e le tabelle che contiene.\n";
+$infoContents .= "# Tutti i backups sono compressi in un file .zip e caricati su Google Drive e possono essere utilizzati per ripristinare il database da amministrazione.leonapp.it/sistema.php\n";
+$infoContents .= "name: $filename\n";
+$infoContents .= "backup_time: $date\n";
+$infoContents .= "backup_info: Leonapp CC2023 Niccolo Pagano e Daniele Lin. Tutti i diritti riservati. Vedi GitHub.com/leonapp-project per maggiori informazioni\n";
+$infoContents .= "table_list:\n";
+foreach ($tables as $table) {
+    $infoContents .= "    - $table\n";
+}
+
 
 // Create a new zip archive
 $zip = new ZipArchive();
@@ -148,4 +141,6 @@ $file = $service->files->create($fileMetadata, array(
 unlink($filename);
 
 // return success in json
-echo json_encode(array("exit" => "success", "message" => "Backup created successfully", "file_id" => $file->id));
+if($suppress_success_message!=true) {
+    echo json_encode(array("exit" => "success", "message" => "Backup created successfully", "file_id" => $file->id));
+}

@@ -28,7 +28,7 @@ if (!checkOAuthPermissionFor("administration.admins.view")) {
 }
 
 //retrieve the OAuth key from the database
-$sql = "SELECT * FROM OAuth_map";
+$sql = "SELECT id, username, email FROM OAuth_map";
 $result = $mysqli->query($sql);
 
 //return the OAuth key

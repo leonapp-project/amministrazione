@@ -7,7 +7,11 @@ const permission_descriptions = {
             "getInfo": "Ottieni le informazioni di uno studente",
             "enableBuyTickets": "Permetti ad uno studente di acquistare un biglietto",
             "updateInfo": "Aggiorna le informazioni di uno studente",
-            "updateWhitelist": "Aggiorna la whitelist degli studenti",
+            "updateWhitelist": "Aggiorna la saintlist degli studenti",
+            "getWhitelist": "Ottieni la saintlist degli studenti",
+        },
+        "admins": {
+            "view": "Visualizza la lista di admins (id, nome, email)",
         },
         "OAuth": {
             "getKeyList": "Ottieni la lista delle chiavi OAuth",
@@ -27,7 +31,12 @@ const permission_descriptions = {
             "sistema": "Visualizza la pagina del sistema",
         }
     },
-
+    "scan": {
+        "view": {
+            "view": "Permesso base di visualizzazione",
+            "home": "Visualizza la pagina principale",
+        },
+    },
 };
 
 var permission = {
@@ -169,21 +178,11 @@ function updatePermissions() {
     $('#permission-json').html(JSON.stringify(permission, null, 4));
 }
 
-$(document).ready(function () {
-    // Define the permissions object
-
-
-    // Function to generate permission checkboxes
-
-
-});
 $(document).on('change', 'input[type="checkbox"]', function () {
     updateCheckboxes(this);
     updatePermissions();
     updateDBPermissions();
 });
-
-//set the notification up is-right
 
 function updateOAuthKeyInfo(data) {
     /*
@@ -224,6 +223,37 @@ function updateDBPermissions() {
             $.notify("Errore nell'aggiornamento dei permessi", "error");
         })
 }
+
+function generateRandomString(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.round(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+//using the updateOAuthInfo.php, update the okey with another 32 character string
+function renewOKey() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    fetch("api/updateOAuthInfo.php?id=" + id + "&field=okey&value=" + generateRandomString(32))
+        .then(response => response.json())
+        .then(data => {
+            if (data.exit == "success") {
+                $.notify("Chiave rinnovata", "success");
+                loadOAuthKeyInfo();
+            } else {
+                $.notify("Errore nel rinnovo della chiave", "error");
+            }
+        })
+        .catch(error => {
+            console.error("Failed to renew the OAuth key:", error);
+            $.notify("Errore nel rinnovo della chiave", "error");
+        });
+}
+
 //when the expiration is changed, update the expiration using the api api/updateOAuthInfo.php
 $(document).on('change', '#expiration', function () {
     const urlParams = new URLSearchParams(window.location.search);
@@ -244,17 +274,8 @@ $(document).on('change', '#expiration', function () {
             $.notify("Errore nell'aggiornamento della data di scadenza", "error");
         });
 });
-//chen someone clicks the key, copy it to cliboard and show a notification
-$(document).on('click', '#key', function () {
-    const key = document.getElementById('key');
-    key.select();
-    key.setSelectionRange(0, 99999);
-    document.execCommand("copy");
-    $.notify("Chiave copiata negli appunti", "success");
-});
 
-$(document).ready(function () {
-    //get the id from the url
+function loadOAuthKeyInfo() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     fetch("api/getOAuthInfo.php?id=" + id)
@@ -272,5 +293,19 @@ $(document).ready(function () {
             console.error("Failed to load the OAuth key data:", error);
             $.notify("Errore nel caricamento dei dati della chiave OAuth", "error");
         });
+}
+//chen someone clicks the key, copy it to cliboard and show a notification
+$(document).on('click', '#key', function () {
+    const key = document.getElementById('key');
+    key.select();
+    key.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    $.notify("Chiave copiata negli appunti", "success");
+});
+
+$(document).ready(function () {
+    //get the id from the url
+    loadOAuthKeyInfo();
+
 });
 $.notify.defaults({ globalPosition: 'bottom right' })

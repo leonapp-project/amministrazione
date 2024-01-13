@@ -38,6 +38,8 @@ if ($requested_page === "home.php") {
     $permissions_needed[] = "administration.view.home";
 } else if ($requested_page === "sistema.php") {
     $permissions_needed[] = "administration.view.sistema";
+} else if($requested_page === "adminUser.php") {
+    $permissions_needed[] = "administration.view.sistema";
 }
 
 //now check if the OAuth satifsfies every permission needed

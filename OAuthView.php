@@ -37,7 +37,8 @@
                     Questa pagina ti permette di gestire la chiave OAuth per un'applicazione esterna.
                     Puoi modificare il nome della chiave, la data di scadenza e i permessi che la chiave può avere.
                     Per maggiori informazioni sui permessi, consulta
-                    <a target="_blank" href="https://github.com/leonapp-project/amministrazione/blob/main/README.md#permessi-oauth">questa
+                    <a target="_blank"
+                        href="https://github.com/leonapp-project/amministrazione/blob/main/README.md#permessi-oauth">questa
                         pagina</a>.
                 </p>
             </div>
@@ -50,15 +51,23 @@
             <div class="box">
                 <div class="columns">
                     <div class="column">
-                        <div class="field">
-                            <label class="label">Chiave</label>
-                            <div class="control has-icons-right">
+                    <label class="label">Chiave</label>
+                        <div class="field has-addons">
+                            <div class="control has-icons-right is-expanded">
                                 <input class="input" type="text" id="key" value="1234567890" readonly>
                                 <span class="icon is-small is-right">
                                     <i class="fas fa-copy"></i>
                                 </span>
                             </div>
+                            <div class="control">
+                                <a class="button is-primary" onclick="renewOKey();">
+                                    <span class="icon is-small is-right">
+                                        <i class="fa-solid fa-repeat"></i>
+                                    </span>
+                                </a>
+                            </div>
                         </div>
+
                     </div>
                     <div class="column">
                         <div class="field">
@@ -77,7 +86,8 @@
     <section class="section">
         <div class="container">
             <h1 class="title">Permessi della chiave OAuth</h1>
-            <h2 class="subtitle is-5">Consulta github.com/leonapp-project/amministrazione per maggiori informazioni
+            <h2 class="subtitle is-5">Consulta <a href="https://github.com/leonapp-project/amministrazione"
+                    target="_blank">github.com/leonapp-project/amministrazione</a> per maggiori informazioni
             </h2>
             <div class="box">
                 <div id="permissions"></div>
@@ -96,6 +106,6 @@
 
 
     <script>
-        
+
     </script>
 </body>

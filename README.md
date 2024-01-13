@@ -138,11 +138,60 @@ https://amministrazione.leonapp.it/api/downloadTicketsBought.php?mode=JSON&id=1&
   "data": {
     "03/2023": 1
   }
-}```
+}
+```
+
+## api/createAdminUser.php
+### Tipo: POST
+### Parametri:
+- OAuth: String(32)
+- username: String (16, optional)
+- password: String
+- email: String
+
+### Description
+Crea un nuovo utente amministratore.
+
+### Permessi OAuth necessari
+- administration.admins.create
+
+### Esempio
+POST https://amministrazione.leonapp.it/api/createAdminUser.php
+```json
+{
+    "username": "admin",
+    "password": "password",
+}
+```
+
+### Resituzione
+```json
+{
+    "exit": "success",
+    "data": {
+        "username": "admin",
+        "password": "cd916028a2d8a1b901e831246dd5b9b4d3832786ddc63bbf5af4b50d9fc98f50",
+        "email": null,
+}
+```
 
 ## Permessi
-- administration.studenti.getList --> Bool
-- administration.students.enableBuyTickets --> Bool
-- administration.studenti.getInfo --> Bool
-- administration.studenti.getTicketsBought --> Bool
-- administration.studenti.updateInfo --> Bool
+- administration.studenti.getList
+- administration.studenti.getInfo
+- administration.studenti.getTicketsBought
+- administration.studenti.getAllTicketsBought
+- administration.studenti.updateInfo
+- administration.studenti.enableBuyTickets
+- administration.studenti.updateWhitelist
+- administration.OAuth.getKeyList
+- administration.OAuth.createKey
+- administration.OAuth.delete
+- administration.OAuth.updateInfo
+- administration.OAuth.getKeyInfo
+- administration.backup.createImage
+- administration.backup.recoverImage
+- administration.backup.view
+- administration.view.view
+- administration.view.home
+- administration.view.sistema
+- administration.admins.create

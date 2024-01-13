@@ -9,6 +9,7 @@ require_once "utils/checkAuth.php";
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LEONAPP - AMMINISTRAZIONE</title>
+  <link rel="icon" href="favicon-logo.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
   <link rel="stylesheet" href="src/css/home.css">
   <script src="https://kit.fontawesome.com/af303d99ee.js" crossorigin="anonymous"></script>

@@ -112,7 +112,7 @@ function checkOAuthPermissionFor($permission, $OAuth = null, $grade=2) {
       if (!checkOAuthPermissionFor($permissions_needed)) {
       } else {
         echo '<a class="navbar-item" href="/home.php">
-        Area focaccine
+        Focaccine
       </a>';
       }
 
@@ -121,7 +121,7 @@ function checkOAuthPermissionFor($permission, $OAuth = null, $grade=2) {
       } else {
         echo '
       <a class="navbar-item" href="/sistema.php">
-        Sistema
+        Gestione
       </a>
       ';
       }

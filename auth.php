@@ -22,7 +22,7 @@ if (!isset($username) || !isset($password)) {
     exit('Incorrect password!');
 }
 //password is password sha256
-$password = hash('sha256', $password.$username);
+$password = hash('sha256', $password . $username);
 
 require_once('mysqli.php');
 //check if the user exists
@@ -65,7 +65,7 @@ if ($expiration < time()) {
 
 //set the cookie OAuth_key to OAuth
 setcookie('OAuth_key', $OAuth, time() + 3600, '/');
-
+$_COOKIE['OAuth_key'] = $OAuth;
 logLogin();
 
 header('Location: home.php');

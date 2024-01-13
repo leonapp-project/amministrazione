@@ -20,8 +20,8 @@ header('Content-Type: application/json');
 
 require_once "utils.php";
 $permission_needed = "administration.backup.createImage";
-if(!checkOAuthPermissionFor($permission_needed, null, 0)) {
-    echo json_encode(array("exit"=> "error", 'error' => "Invalid OAuth key for \"$permission_needed\". Contact the administrator to resolve this issue."));
+if (!checkOAuthPermissionFor($permission_needed, null, 0)) {
+    echo json_encode(array("exit" => "error", 'error' => "Invalid OAuth key for \"$permission_needed\". Contact the administrator to resolve this issue."));
     exit;
 }
 
@@ -35,9 +35,9 @@ while ($row = $result->fetch_row()) {
 // Set the backup filename and directory
 $date = date('d-m-Y H:i');
 
-if(!isset($_GET['backupname'])){
+if (!isset($_GET['backupname'])) {
     $filename = "backup-{$date}.zip";
-}else{
+} else {
     $filename = $_GET['backupname'];
 }
 $dir = 'backups';
@@ -98,7 +98,11 @@ foreach ($tables as $table) {
         $row = $result->fetch_assoc();
         $sql .= "INSERT INTO `$table` VALUES (";
         foreach ($row as $value) {
-            $sql .= "'" . $mysqli->real_escape_string($value) . "',";
+            if ($value === null) {
+                $sql .= "NULL,";
+            } else {
+                $sql .= "'" . $mysqli->real_escape_string($value) . "',";
+            }
         }
         $sql = rtrim($sql, ',') . ");\n";
     }
@@ -125,22 +129,25 @@ $service = new Google_Service_Drive($client);
 
 $folderId = "1H40Lge_gbHPY88upl3yXl95ccx4lTebM";
 
-$fileMetadata = new Google_Service_Drive_DriveFile(array(
-    'name' => $filename,
-    'parents' => array($folderId)
-));
+$fileMetadata = new Google_Service_Drive_DriveFile(
+    array(
+        'name' => $filename,
+        'parents' => array($folderId)
+    )
+);
 $content = file_get_contents($filename);
 $file = $service->files->create($fileMetadata, array(
     'data' => $content,
     'mimeType' => 'application/zip',
     'uploadType' => 'multipart',
     'fields' => 'id'
-));
+)
+);
 
 //delete the file from the server
 unlink($filename);
 
 // return success in json
-if($suppress_success_message!=true) {
+if ($suppress_success_message != true) {
     echo json_encode(array("exit" => "success", "message" => "Backup created successfully", "file_id" => $file->id));
 }

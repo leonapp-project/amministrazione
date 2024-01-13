@@ -12,6 +12,7 @@ require_once "utils/checkAuth.php";
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>LEONAPP - AMMINISTRAZIONE</title>
+    <link rel="icon" href="favicon-logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <script src="https://kit.fontawesome.com/af303d99ee.js" crossorigin="anonymous"></script>
     <!-- import jquery -->
@@ -106,7 +107,7 @@ require_once "utils/checkAuth.php";
         </div>
 
     </section>
-
+    <div style="padding: 20px;"></div>
     <section>
         <a name="backups"></a>
         <div class="container">
@@ -176,6 +177,9 @@ require_once "utils/checkAuth.php";
                 </a>
             </div>
         </div>
+        <!-- put some padding some space -->
+        <div style="padding: 20px;"></div>
+
         <div class="container">
             <h2 class="title is-4">
                 Abilita nuovi studenti da .csv
@@ -193,11 +197,20 @@ require_once "utils/checkAuth.php";
                     </span>
                     <span>Carica file</span>
                 </a>
+                <a class="button is-info is-light" onclick="viewWhitelist()">
+                    <span class="icon">
+                        <i class="fas fa-list"></i>
+                    </span>
+                    <span>Visualizza</span>
+                </a>
             </div>
     </section>
+    <!-- some momentary padding -->
+    <div style="padding: 20px;"></div>
+
     <!--Bulma  modal for the createNewAdminUser asking for username and passowrd -->
     <div class="modal" id="new-admin-user-modal">
-        <div class="modal-background"></div>
+    <div class="modal-background" onclick="document.getElementById('new-admin-user-modal').classList.remove('is-active')"></div>
         <div class="modal-content">
             <div class="box">
                 <h1 class="title">Create New Admin User</h1>
@@ -226,13 +239,47 @@ require_once "utils/checkAuth.php";
             </div>
         </div>
         <button class="modal-close is-large" aria-label="close"
-            onclick="document.getElementById('new-admin-user-modal').classList.remove('is-active')"></button>
+            onclick="document.getElementById('new-admin-user-modal').classList.remove('is-active')">
+        </button>
     </div>
 
 
+    <!-- Bulma modal to display the whitelist table ("Nome","Cognome","email", "anno, "sezione") -->
+    <div class="modal" id="whitelist-table-modal">
+        <div class="modal-background" onclick="document.getElementById('whitelist-table-modal').classList.remove('is-active')"></div>
+        <div class="modal-content">
+            <div class="box"   style="max-width: infinity;">
+                <h1 class="title">Saintlist</h1>
+                <div class="table-container is-max-height-25vh">
+                    <table  class="table is-hoverable is-striped is-responsive ">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Cognome</th>
+                                <th>email</th>
+                                <th>Anno</th>
+                                <th>Sezione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="whitelist-table">
+                            <!-- Rows will be added dynamically by the script -->
+                        </tbody> 
+                    </table>
+                </div>
+            </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"
+            onclick="document.getElementById('whitelist-table-modal').classList.remove('is-active')">
+        </button>
+    </div>
     <script>
         function createNewAdminUser() {
             document.getElementById("new-admin-user-modal").classList.add("is-active");
+            document.addEventListener('keydown', function(event) {
+                if (event.key == "Escape") {
+                    document.getElementById("new-admin-user-modal").classList.remove("is-active");
+                }
+            });
         }
         function createNewAdminUserConfirm() {
             //fetch api/createAdminUser.php
@@ -258,7 +305,6 @@ require_once "utils/checkAuth.php";
             // display the modal
         }
 
-
         function updateSystemUsersTable(data) {
             //clear the table
             document.getElementById("users-table").getElementsByTagName("tbody")[0].innerHTML = "";
@@ -273,9 +319,9 @@ require_once "utils/checkAuth.php";
                 let td3 = document.createElement("td");
                 //add the data to the columns
                 td1.innerHTML = row[0];
-                td2.innerHTML = row[3];
+                td2.innerHTML = row[1];
                 //td3 is just settings with next a seetings icon
-                td3.innerHTML = "<a href='#'><span class='icon'><i class='fas fa-cog'></i></span> impostazioni</a>";
+                td3.innerHTML = "<a href='adminUser.php?id="+row[0]+"'><span class='icon'><i class='fas fa-cog'></i></span> impostazioni</a>";
                 //add the columns to the row
                 tr.appendChild(td1);
                 tr.appendChild(td2);
@@ -295,14 +341,13 @@ require_once "utils/checkAuth.php";
             });
 
     </script>
+
     <!-- below all the scripts associated with the macros -->
     <script>
         // this is the script that will be executed when the user clicks on the "cancella tutti i dati" button
         function deleteAllData() {
 
         }
-
-
 
     </script>
 </body>
